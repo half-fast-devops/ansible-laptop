@@ -1,0 +1,24 @@
+---
+# roles/directories/defaults/main.yml
+# Default directories to create - override in group_vars or host_vars
+#
+# Each entry can be:
+#   - A simple path string (uses default mode 0755)
+#   - A dict with 'path' (required) and 'mode' (optional, default: 0755)
+#
+# Note: Use {{ user_home }} for home directory paths (~ is not expanded by Ansible)
+#
+# Examples:
+#   directories:
+#     - "{{ user_home }}/code"           # simple string, mode defaults to 0755
+#     - path: "{{ user_home }}/work"     # dict without mode, defaults to 0755
+#     - path: "{{ user_home }}/private"
+#       mode: "0700"                      # dict with custom mode
+
+# User home directory - uses environment variable HOME
+user_home: "{{ lookup('env', 'HOME') }}"
+
+directories:
+  - "{{ user_home }}/code"
+  - "{{ user_home }}/work"
+  - "{{ user_home }}/personal"

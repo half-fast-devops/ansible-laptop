@@ -1,0 +1,26 @@
+---
+# roles/packages/meta/main.yml
+
+galaxy_info:
+  author: Mat Kovach
+  description: Cross-platform package installation for Linux (apt, dnf, pacman, zypper)
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+    - name: Archlinux
+      versions:
+        - all
+    - name: opensuse
+      versions:
+        - all
+
+dependencies: []

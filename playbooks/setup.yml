@@ -1,0 +1,35 @@
+---
+# playbooks/setup.yml - Initial laptop setup
+# Run this for fresh machine configuration
+
+- name: Initial laptop setup
+  hosts: localhost
+  gather_facts: true
+
+  pre_tasks:
+    - name: Add host to OS-specific group
+      ansible.builtin.group_by:
+        key: "{{ 'macos' if ansible_facts['os_family'] == 'Darwin' else 'linux' }}"
+
+  roles:
+    - role: directories
+      tags: [dirs]
+
+    - role: homebrew
+      tags: [brew, packages]
+      when: ansible_facts['os_family'] == 'Darwin'
+
+    - role: packages
+      tags: [packages]
+      when: ansible_facts['os_family'] != 'Darwin'
+
+    - role: ssh
+      tags: [ssh]
+      vars:
+        ssh_create_keys: true
+
+    - role: shell_profile
+      tags: [shell]
+
+    - role: git_repos
+      tags: [git, repos]

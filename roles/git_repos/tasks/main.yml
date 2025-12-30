@@ -1,0 +1,54 @@
+---
+# roles/git_repos/tasks/main.yml
+# Clones and updates git repositories
+
+- name: Validate git repository configurations
+  ansible.builtin.assert:
+    that:
+      - item.repo is defined and item.repo | length > 0
+      - item.dest is defined and item.dest | length > 0
+      - item.repo is regex('^(https?://|git@|ssh://)')
+    fail_msg: "Git repo entry missing required 'repo' or 'dest', or invalid repo URL: {{ item }}"
+    quiet: true
+  loop: "{{ git_repos }}"
+  when: git_repos | length > 0
+
+- name: Ensure parent directories exist
+  ansible.builtin.file:
+    path: "{{ item.dest | dirname }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ git_repos }}"
+  when: git_repos | length > 0
+
+- name: Clone or update git repositories
+  ansible.builtin.git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+    clone: true
+    update: true
+    version: "{{ item.version | default('HEAD') }}"
+  loop: "{{ git_repos }}"
+  when: git_repos | length > 0
+
+- name: Set local git user.name
+  community.general.git_config:
+    repo: "{{ item.dest }}"
+    scope: local
+    name: user.name
+    value: "{{ item.name }}"
+  loop: "{{ git_repos }}"
+  when:
+    - git_repos | length > 0
+    - item.name is defined
+
+- name: Set local git user.email
+  community.general.git_config:
+    repo: "{{ item.dest }}"
+    scope: local
+    name: user.email
+    value: "{{ item.email }}"
+  loop: "{{ git_repos }}"
+  when:
+    - git_repos | length > 0
+    - item.email is defined

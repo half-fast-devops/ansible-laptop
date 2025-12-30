@@ -1,0 +1,23 @@
+---
+# roles/doctor/meta/main.yml
+
+galaxy_info:
+  author: Mat Kovach
+  description: Health checks and diagnostics for laptop configuration
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: MacOSX
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+
+dependencies: []

@@ -1,0 +1,13 @@
+---
+# roles/packages/defaults/main.yml
+# Default Linux packages to install
+
+linux_packages:
+  - git
+  - fzf
+  - neovim
+  - stow
+  - ripgrep
+
+# Package manager: auto, apt, dnf, dnf5, pacman, or zypper
+package_manager: auto

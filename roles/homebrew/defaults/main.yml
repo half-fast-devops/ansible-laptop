@@ -1,0 +1,16 @@
+---
+# roles/homebrew/defaults/main.yml
+# Default packages to install - override in group_vars or host_vars
+
+brew_packages:
+  - git
+  - fzf
+  - nvim
+  - stow
+  - ripgrep
+
+cask_packages: []
+
+# Sudo password for casks that require elevated privileges
+# This is set via vault.yml (see inventory/group_vars/all/vault.yml)
+# Falls back to empty string if not configured (some casks don't need sudo)

@@ -1,0 +1,75 @@
+---
+# roles/packages/tasks/main.yml
+# Cross-platform package installation for Linux
+
+- name: Set effective package manager
+  ansible.builtin.set_fact:
+    effective_package_manager: >-
+      {%- if package_manager != 'auto' -%}
+        {{ package_manager }}
+      {%- elif ansible_facts['pkg_mgr'] == 'dnf5' -%}
+        dnf5
+      {%- elif ansible_facts['pkg_mgr'] in ['yum', 'dnf'] -%}
+        dnf
+      {%- elif ansible_facts['pkg_mgr'] in ['apt', 'pacman', 'zypper'] -%}
+        {{ ansible_facts['pkg_mgr'] }}
+      {%- else -%}
+        unknown
+      {%- endif -%}
+
+- name: Fail if package manager is unknown
+  ansible.builtin.fail:
+    msg: >-
+      Unknown package manager '{{ effective_package_manager }}'.
+      Supported: apt, dnf, dnf5, pacman, zypper. Set 'package_manager' variable explicitly or check your system.
+  when:
+    - linux_packages | length > 0
+    - effective_package_manager not in ['apt', 'dnf', 'dnf5', 'pacman', 'zypper']
+
+- name: Install packages with apt
+  ansible.builtin.apt:
+    name: "{{ linux_packages }}"
+    state: present
+    update_cache: true
+  become: true
+  when:
+    - effective_package_manager == 'apt'
+    - linux_packages | length > 0
+
+- name: Install packages with dnf
+  ansible.builtin.dnf:
+    name: "{{ linux_packages }}"
+    state: present
+  become: true
+  when:
+    - effective_package_manager == 'dnf'
+    - linux_packages | length > 0
+
+- name: Install packages with dnf5
+  ansible.builtin.dnf5:
+    name: "{{ linux_packages }}"
+    state: present
+  become: true
+  when:
+    - effective_package_manager == 'dnf5'
+    - linux_packages | length > 0
+
+- name: Install packages with pacman
+  community.general.pacman:
+    name: "{{ linux_packages }}"
+    state: present
+    update_cache: true
+  become: true
+  when:
+    - effective_package_manager == 'pacman'
+    - linux_packages | length > 0
+
+- name: Install packages with zypper
+  community.general.zypper:
+    name: "{{ linux_packages }}"
+    state: present
+    update_cache: true
+  become: true
+  when:
+    - effective_package_manager == 'zypper'
+    - linux_packages | length > 0

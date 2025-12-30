@@ -1,0 +1,11 @@
+---
+# playbooks/doctor.yml - Health checks and diagnostics
+# Run to verify laptop configuration is correct
+
+- name: Laptop health check
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    - role: doctor
+      tags: [doctor]

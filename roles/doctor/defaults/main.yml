@@ -1,0 +1,16 @@
+---
+# roles/doctor/defaults/main.yml
+# Doctor configuration defaults
+
+# Strict mode fails on issues instead of warning
+doctor_strict: false
+
+# SSH hosts to test connectivity
+doctor_ssh_hosts:
+  - git@github.com
+
+# Essential commands that should be available
+doctor_essential_commands:
+  - git
+  - ssh
+  - curl

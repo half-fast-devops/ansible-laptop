@@ -1,0 +1,48 @@
+---
+# roles/ssh/tasks/main.yml
+# Manages SSH configuration and identities
+
+- name: Validate SSH host configurations
+  ansible.builtin.assert:
+    that:
+      - item.name is defined and item.name | length > 0
+      - item.hostname is defined and item.hostname | length > 0
+    fail_msg: "SSH host entry missing required 'name' or 'hostname': {{ item }}"
+    quiet: true
+  loop: "{{ ssh_hosts }}"
+  when: ssh_hosts | length > 0
+
+- name: Validate SSH identity configurations
+  ansible.builtin.assert:
+    that:
+      - item.name is defined and item.name | length > 0
+      - item.name is regex('^[a-zA-Z0-9_-]+$')
+    fail_msg: "SSH identity 'name' must be alphanumeric with dashes/underscores only: {{ item.name | default('undefined') }}"
+    quiet: true
+  loop: "{{ ssh_identities }}"
+  when: ssh_identities | length > 0
+
+- name: Ensure SSH directory exists
+  ansible.builtin.file:
+    path: "{{ ssh_config_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Create SSH identities
+  community.crypto.openssh_keypair:
+    path: "{{ ssh_config_dir }}/id_{{ item.key_type | default('ed25519') }}_{{ item.name }}"
+    type: "{{ item.key_type | default('ed25519') }}"
+    comment: "{{ item.comment | default(item.name) }}"
+    state: present
+  loop: "{{ ssh_identities }}"
+  when:
+    - ssh_identities | length > 0
+    - item.create_if_missing | default(false) | bool
+    - ssh_create_keys | default(false) | bool
+
+- name: Generate SSH config
+  ansible.builtin.template:
+    src: config.j2
+    dest: "{{ ssh_config_dir }}/config"
+    mode: "0600"
+    backup: "{{ (ssh_hosts | length > 0) | bool }}"

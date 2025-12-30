@@ -1,0 +1,22 @@
+# SSH Agent initialization - Managed by Ansible
+# Ensures SSH agent is running and keys are loaded (Linux only)
+
+# Start SSH agent if not running
+if [ -z "$SSH_AUTH_SOCK" ]; then
+    eval "$(ssh-agent -s)" > /dev/null 2>&1
+fi
+
+# Add default keys if they exist and aren't already loaded
+ssh_add_if_exists() {
+    local key="$1"
+    if [ -f "$key" ]; then
+        ssh-add -l | grep -q "$(ssh-keygen -lf "$key" 2>/dev/null | awk '{print $2}')" 2>/dev/null || ssh-add "$key" 2>/dev/null
+    fi
+}
+
+{# Identity names are validated to be alphanumeric with dashes/underscores only #}
+{% for identity in ssh_identities | default([]) %}
+ssh_add_if_exists '{{ ssh_config_dir }}/id_{{ identity.key_type | default('ed25519') }}_{{ identity.name | regex_replace('[^a-zA-Z0-9_-]', '') }}'
+{% endfor %}
+
+unset -f ssh_add_if_exists

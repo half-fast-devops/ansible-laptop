@@ -1,0 +1,54 @@
+---
+# roles/shell_profile/tasks/main.yml
+# Manages shell profile with drop-in directory support
+
+- name: Ensure profile drop-in directory exists
+  ansible.builtin.file:
+    path: "{{ shell_profile_dir }}"
+    state: directory
+    mode: "0755"
+  when: shell_profile_managed
+
+- name: Check if shell rc files exist
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: "{{ shell_rc_files }}"
+  register: rc_file_stats
+  when: shell_profile_managed
+
+- name: Deploy profile loader to shell rc files
+  ansible.builtin.blockinfile:
+    path: "{{ item.item }}"
+    marker: "# {mark} ANSIBLE MANAGED - profile.d loader"
+    block: |
+      # Source all scripts in {{ shell_profile_dir }}
+      if [ -d "{{ shell_profile_dir }}" ]; then
+        for f in "{{ shell_profile_dir }}"/*.sh; do
+          [ -r "$f" ] && . "$f"
+        done
+        unset f
+      fi
+    create: true
+    mode: "{{ '0644' if not item.stat.exists else omit }}"
+  loop: "{{ rc_file_stats.results | default([]) }}"
+  when: shell_profile_managed
+
+- name: Deploy SSH agent initialization script
+  ansible.builtin.template:
+    src: 10-ssh-agent.sh.j2
+    dest: "{{ shell_profile_dir }}/10-ssh-agent.sh"
+    mode: "0644"
+  when:
+    - shell_profile_managed
+    - shell_ssh_agent_enabled
+    - ansible_facts['os_family'] != 'Darwin'  # macOS uses keychain integration
+
+- name: Deploy custom profile scripts
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "{{ shell_profile_dir }}/{{ item.name }}"
+    mode: "0644"
+  loop: "{{ shell_profile_scripts }}"
+  when:
+    - shell_profile_managed
+    - shell_profile_scripts | length > 0

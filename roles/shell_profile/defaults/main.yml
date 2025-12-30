@@ -1,0 +1,27 @@
+---
+# roles/shell_profile/defaults/main.yml
+# Shell profile configuration defaults
+
+# User home directory - uses environment variable HOME
+user_home: "{{ lookup('env', 'HOME') }}"
+
+shell_profile_dir: "{{ user_home }}/.profile.d"
+shell_profile_managed: true
+shell_ssh_agent_enabled: true
+
+# Shell RC files to add the profile.d loader to
+shell_rc_files:
+  - "{{ user_home }}/.bashrc"
+  - "{{ user_home }}/.zshrc"
+
+# Custom profile scripts to deploy
+# Example:
+# shell_profile_scripts:
+#   - name: 20-aliases.sh
+#     content: |
+#       alias ll='ls -la'
+#       alias gs='git status'
+#   - name: 30-path.sh
+#     content: |
+#       export PATH="$HOME/bin:$PATH"
+shell_profile_scripts: []

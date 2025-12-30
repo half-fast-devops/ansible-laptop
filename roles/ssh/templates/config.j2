@@ -1,0 +1,37 @@
+# SSH Config - Managed by Ansible
+# Do not edit manually - changes will be overwritten
+
+{% for host in ssh_hosts %}
+Host {{ host.name }}
+    HostName {{ host.hostname }}
+{% if host.user is defined %}
+    User {{ host.user }}
+{% endif %}
+{% if host.port is defined %}
+    Port {{ host.port }}
+{% endif %}
+{% if host.identity_file is defined %}
+    IdentityFile {{ host.identity_file }}
+    IdentitiesOnly yes
+{% endif %}
+{% if host.forward_agent is defined and host.forward_agent %}
+    ForwardAgent yes
+{% endif %}
+{% if host.extra_options is defined %}
+{% for key, value in host.extra_options.items() %}
+{# Quote values containing spaces or special characters #}
+{% if ' ' in value | string or '"' in value | string %}
+    {{ key }} "{{ value | replace('"', '\\"') }}"
+{% else %}
+    {{ key }} {{ value }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+# Global defaults
+Host *
+    AddKeysToAgent yes
+{% if ansible_facts['os_family'] == 'Darwin' %}
+    UseKeychain yes
+{% endif %}

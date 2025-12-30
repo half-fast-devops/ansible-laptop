@@ -1,0 +1,11 @@
+---
+# playbooks/shell.yml - Shell profile configuration only
+# Run to configure shell profiles without other changes
+
+- name: Configure shell profile
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    - role: shell_profile
+      tags: [shell]

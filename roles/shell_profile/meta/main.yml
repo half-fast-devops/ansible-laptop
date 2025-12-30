@@ -1,0 +1,23 @@
+---
+# roles/shell_profile/meta/main.yml
+
+galaxy_info:
+  author: Mat Kovach
+  description: Manages shell profile with drop-in directory support
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: MacOSX
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+
+dependencies: []

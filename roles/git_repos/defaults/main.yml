@@ -1,0 +1,15 @@
+---
+# roles/git_repos/defaults/main.yml
+# Repositories to clone - override in group_vars or host_vars
+#
+# Example:
+# git_repos:
+#   - repo: git@github.com:user/dotfiles.git
+#     dest: ~/dotfiles
+#   - repo: git@github.com:user/project.git
+#     dest: ~/code/project
+#     version: main
+#     name: Your Name        # optional: sets git config --local user.name
+#     email: you@example.com # optional: sets git config --local user.email
+
+git_repos: []

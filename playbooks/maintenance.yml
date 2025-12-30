@@ -1,0 +1,78 @@
+---
+# playbooks/maintenance.yml - Ongoing maintenance tasks
+# Run periodically to update packages and repos
+
+- name: Laptop maintenance
+  hosts: localhost
+  gather_facts: true
+
+  pre_tasks:
+    - name: Detect OS family
+      ansible.builtin.include_tasks: includes/detect_os.yml
+      tags: [always]
+
+  tasks:
+    - name: Update Homebrew packages (macOS)
+      when: ansible_facts['os_family'] == 'Darwin'
+      block:
+        - name: Update Homebrew
+          community.general.homebrew:
+            update_homebrew: true
+
+        - name: Upgrade all Homebrew packages
+          community.general.homebrew:
+            upgrade_all: true
+          register: brew_upgrade
+
+        - name: Show upgraded packages
+          ansible.builtin.debug:
+            msg: "Upgraded: {{ brew_upgrade.changed_pkgs | default([]) }}"
+          when: brew_upgrade.changed | default(false)
+
+        - name: Upgrade all casks
+          community.general.homebrew_cask:
+            upgrade_all: true
+          register: cask_upgrade
+
+        - name: Show upgraded casks
+          ansible.builtin.debug:
+            msg: "Upgraded casks: {{ cask_upgrade.changed_pkgs | default([]) }}"
+          when: cask_upgrade.changed | default(false)
+
+        - name: Cleanup Homebrew
+          ansible.builtin.command: brew cleanup
+          changed_when: false
+
+    - name: Update Linux packages
+      when: ansible_facts['os_family'] != 'Darwin'
+      block:
+        - name: Update apt packages (Debian/Ubuntu)
+          ansible.builtin.apt:
+            update_cache: true
+            upgrade: safe
+          become: true
+          when: ansible_facts['pkg_mgr'] == 'apt'
+
+        - name: Update dnf packages (Fedora/RHEL)
+          ansible.builtin.dnf:
+            name: '*'
+            state: latest
+          become: true
+          when: ansible_facts['pkg_mgr'] in ['dnf', 'yum']
+
+        - name: Update dnf5 packages (Fedora 41+)
+          ansible.builtin.dnf5:
+            name: '*'
+            state: latest
+          become: true
+          when: ansible_facts['pkg_mgr'] == 'dnf5'
+
+        - name: Update pacman packages (Arch Linux)
+          community.general.pacman:
+            update_cache: true
+            upgrade: true
+          become: true
+          when: ansible_facts['pkg_mgr'] == 'pacman'
+
+    - name: Update git repositories
+      ansible.builtin.include_tasks: includes/update_git_repos.yml

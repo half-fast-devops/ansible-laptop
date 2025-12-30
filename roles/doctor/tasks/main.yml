@@ -1,0 +1,76 @@
+---
+# roles/doctor/tasks/main.yml
+# Health checks and diagnostics for the laptop configuration
+
+- name: Check SSH directory permissions
+  ansible.builtin.stat:
+    path: "{{ ssh_config_dir }}"
+  register: ssh_dir_stat
+
+- name: Validate SSH directory permissions
+  ansible.builtin.assert:
+    that:
+      - ssh_dir_stat.stat.exists
+      - ssh_dir_stat.stat.mode == '0700'
+    fail_msg: "SSH directory {{ ssh_config_dir }} should exist with mode 0700"
+    success_msg: "SSH directory permissions OK"
+  when: doctor_strict | bool
+
+- name: Warn about SSH directory permissions
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: SSH directory {{ ssh_config_dir }}
+      {% if not ssh_dir_stat.stat.exists %}does not exist{% else %}has mode {{ ssh_dir_stat.stat.mode }} (should be 0700){% endif %}
+  when:
+    - not (doctor_strict | bool)
+    - not ssh_dir_stat.stat.exists or ssh_dir_stat.stat.mode != '0700'
+
+- name: Check SSH connectivity to configured hosts
+  ansible.builtin.command:
+    cmd: ssh -o BatchMode=yes -o ConnectTimeout=5 -T {{ item }}
+  loop: "{{ doctor_ssh_hosts }}"
+  register: ssh_check_results
+  changed_when: false
+  failed_when: false
+  when: doctor_ssh_hosts | length > 0
+
+- name: Report SSH connectivity status
+  vars:
+    _output: "{{ item.stderr | default(item.stdout, true) }}"
+    _success_patterns: ['successfully authenticated', 'Welcome']
+    _is_success: >-
+      {{ item.rc in [0, 1] and (_success_patterns | select('in', _output) | list | length > 0) }}
+  ansible.builtin.debug:
+    msg: "SSH to {{ item.item }}: {{ 'OK' if _is_success else 'FAILED - ' + _output }}"
+  loop: "{{ ssh_check_results.results | default([]) }}"
+  when: doctor_ssh_hosts | length > 0
+
+- name: Check shell profile directory
+  ansible.builtin.stat:
+    path: "{{ shell_profile_dir }}"
+  register: profile_dir_stat
+
+- name: Report shell profile status
+  ansible.builtin.debug:
+    msg: "Shell profile directory {{ shell_profile_dir }}: {{ 'EXISTS' if profile_dir_stat.stat.exists else 'MISSING' }}"
+
+- name: Check essential commands are available
+  ansible.builtin.shell:
+    cmd: command -v '{{ item }}'
+  loop: "{{ doctor_essential_commands }}"
+  register: command_check_results
+  changed_when: false
+  failed_when: false
+
+- name: Report command availability
+  ansible.builtin.debug:
+    msg: "Command '{{ item.item }}': {{ 'FOUND at ' + item.stdout if item.rc == 0 else 'NOT FOUND' }}"
+  loop: "{{ command_check_results.results }}"
+
+- name: Summary
+  ansible.builtin.debug:
+    msg: |
+      === Doctor Summary ===
+      SSH Directory: {{ 'OK' if ssh_dir_stat.stat.exists and ssh_dir_stat.stat.mode == '0700' else 'NEEDS ATTENTION' }}
+      Profile Directory: {{ 'OK' if profile_dir_stat.stat.exists else 'MISSING' }}
+      Commands: {{ command_check_results.results | selectattr('rc', 'eq', 0) | list | length }}/{{ doctor_essential_commands | length }} available

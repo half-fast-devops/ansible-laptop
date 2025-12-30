@@ -1,0 +1,69 @@
+---
+# inventory/group_vars/all/main.yml
+# Variables applied to all hosts - override in host_vars or vault.yml
+
+# User home directory - uses environment variable HOME
+# This is available even before gather_facts runs
+user_home: "{{ lookup('env', 'HOME') }}"
+
+# Directories to create (use {{ user_home }} for home directory)
+directories:
+  - path: "{{ user_home }}/code"
+    mode: "0700"
+  - path: "{{ user_home }}/work"
+    mode: "0700"
+  - path: "{{ user_home }}/personal"
+    mode: "0700"
+
+# Git repositories to clone
+# Example:
+# git_repos:
+#   - repo: git@github.com:user/dotfiles.git
+#     dest: ~/dotfiles
+#   - repo: git@github.com:user/project.git
+#     dest: ~/code/project
+#     version: main
+#     name: Your Name        # optional: sets git config --local user.name
+#     email: you@example.com # optional: sets git config --local user.email
+git_repos: []
+
+# SSH configuration
+ssh_config_dir: "{{ user_home }}/.ssh"
+# Example:
+# ssh_identities:
+#   - name: personal
+#     key_type: ed25519
+#     create_if_missing: true
+#   - name: work
+#     key_type: ed25519
+#     create_if_missing: true
+ssh_identities: 
+  - name: personal
+    key_type: rsa
+    comment: "mek@mek.cc"
+    create_if_missing: false
+
+# Example:
+# ssh_hosts:
+#   - name: github.com-personal
+#     hostname: github.com
+#     user: git
+#     identity_file: ~/.ssh/id_ed25519_personal
+#   - name: github.com-work
+#     hostname: github.com
+#     user: git
+#     identity_file: ~/.ssh/id_ed25519_work
+ssh_hosts: 
+  - name: github-mek
+    hostname: github.com
+    user: git
+    identity_file: ~/.ssh/id_rsa_personal
+
+# Shell profile configuration
+shell_profile_dir: "{{ user_home }}/.profile.d"
+shell_profile_managed: true
+
+# Doctor configuration
+doctor_strict: false
+doctor_ssh_hosts:
+  - github-mek

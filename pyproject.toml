@@ -1,0 +1,15 @@
+[project]
+name = "ansible-laptop"
+version = "0.1.0"
+description = "Cross-platform laptop automation for macOS and Linux"
+requires-python = ">=3.12"
+dependencies = [
+    "ansible>=9.0.0",
+    "cryptography>=41.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "ansible-lint",
+    "ansible-vault",
+]

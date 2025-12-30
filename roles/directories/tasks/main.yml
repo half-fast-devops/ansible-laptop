@@ -1,0 +1,11 @@
+---
+# roles/directories/tasks/main.yml
+# Creates essential directories for the user environment
+
+- name: Ensure essential directories exist
+  ansible.builtin.file:
+    path: "{{ item.path | default(item) }}"
+    state: directory
+    mode: "{{ item.mode | default('0755') }}"
+  loop: "{{ directories }}"
+  when: directories | length > 0

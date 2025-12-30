@@ -1,0 +1,22 @@
+---
+# inventory/group_vars/linux/main.yml
+# Linux-specific variables
+
+# Privilege escalation settings - sudo password stored in vault.yml
+# Note: become is enabled per-role (only packages needs sudo), not globally
+ansible_become_method: sudo
+
+# Packages to install (works with apt, dnf, pacman)
+linux_packages:
+  - git
+  - fzf
+  - neovim
+  - stow
+  - ripgrep
+  - joe
+  - ed
+  - regina-rexx
+
+# Package manager: auto, apt, dnf, or pacman
+# 'auto' will detect based on the distribution
+package_manager: auto

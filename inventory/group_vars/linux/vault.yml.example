@@ -1,0 +1,9 @@
+---
+# Copy this file to vault.yml and encrypt it:
+#   cp vault.yml.example vault.yml
+#   ansible-vault encrypt vault.yml
+#
+# Or create directly with:
+#   ansible-vault create vault.yml
+
+ansible_become_password: "YOUR_SUDO_PASSWORD_HERE"

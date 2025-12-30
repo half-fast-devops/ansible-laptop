@@ -1,0 +1,6 @@
+---
+# roles/homebrew/handlers/main.yml
+
+- name: Run brew cleanup
+  ansible.builtin.command: brew cleanup
+  changed_when: true

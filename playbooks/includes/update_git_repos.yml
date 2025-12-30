@@ -1,0 +1,19 @@
+---
+# playbooks/includes/update_git_repos.yml
+# Shared task to update git repositories
+
+- name: Update git repositories
+  ansible.builtin.git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+    update: true
+    version: "{{ item.version | default('HEAD') }}"
+  loop: "{{ git_repos }}"
+  when: git_repos | length > 0
+  register: git_update
+
+- name: Show updated repositories
+  ansible.builtin.debug:
+    msg: "Updated: {{ item.item.dest }}"
+  loop: "{{ git_update.results | default([]) }}"
+  when: item.changed | default(false)

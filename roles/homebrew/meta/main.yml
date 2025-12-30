@@ -1,0 +1,14 @@
+---
+# roles/homebrew/meta/main.yml
+
+galaxy_info:
+  author: Mat Kovach
+  description: Manages Homebrew packages and casks on macOS
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: MacOSX
+      versions:
+        - all
+
+dependencies: []

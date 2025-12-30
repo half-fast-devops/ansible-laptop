@@ -1,0 +1,42 @@
+---
+# roles/ssh/defaults/main.yml
+# SSH configuration defaults
+
+# User home directory - uses environment variable HOME
+user_home: "{{ lookup('env', 'HOME') }}"
+
+ssh_config_dir: "{{ user_home }}/.ssh"
+
+# Set to true to create missing SSH keys
+ssh_create_keys: false
+
+# SSH identities to manage
+# Example:
+# ssh_identities:
+#   - name: personal
+#     key_type: ed25519
+#     comment: "personal@laptop"
+#     create_if_missing: true
+#   - name: work
+#     key_type: ed25519
+#     comment: "work@laptop"
+#     create_if_missing: true
+ssh_identities: []
+
+# SSH host configurations
+# Example:
+# ssh_hosts:
+#   - name: github.com-personal
+#     hostname: github.com
+#     user: git
+#     identity_file: ~/.ssh/id_ed25519_personal
+#   - name: github.com-work
+#     hostname: github.com
+#     user: git
+#     identity_file: ~/.ssh/id_ed25519_work
+#   - name: myserver
+#     hostname: 192.168.1.100
+#     user: admin
+#     port: 22
+#     identity_file: ~/.ssh/id_ed25519_personal
+ssh_hosts: []

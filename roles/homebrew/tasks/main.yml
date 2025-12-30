@@ -1,0 +1,29 @@
+---
+# roles/homebrew/tasks/main.yml
+# Manages Homebrew packages and casks (macOS only)
+
+- name: Update Homebrew and install packages
+  community.general.homebrew:
+    name: "{{ brew_packages }}"
+    state: present
+    update_homebrew: true
+  register: brew_install_result
+  when: brew_packages | length > 0
+
+- name: Show installed packages
+  ansible.builtin.debug:
+    msg: "Installed: {{ brew_install_result.changed_pkgs | default([]) }}"
+  when: brew_install_result.changed | default(false)
+
+- name: Install Homebrew casks
+  community.general.homebrew_cask:
+    name: "{{ cask_packages }}"
+    state: present
+    sudo_password: "{{ sudo_password if sudo_password | default('') | length > 0 else omit }}"
+  register: cask_install_result
+  when: cask_packages | length > 0
+
+- name: Show installed casks
+  ansible.builtin.debug:
+    msg: "Installed casks: {{ cask_install_result.changed_pkgs | default([]) }}"
+  when: cask_install_result.changed | default(false)

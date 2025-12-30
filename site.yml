@@ -1,0 +1,33 @@
+---
+# site.yml - Main entry point for laptop configuration
+# Cross-platform support for macOS and Linux
+
+- name: Configure laptop
+  hosts: localhost
+  gather_facts: true
+
+  pre_tasks:
+    - name: Detect OS family
+      ansible.builtin.include_tasks: playbooks/includes/detect_os.yml
+      tags: [always]
+
+  roles:
+    - role: directories
+      tags: [dirs, setup]
+
+    - role: homebrew
+      tags: [brew, packages, setup]
+      when: ansible_facts['os_family'] == 'Darwin'
+
+    - role: packages
+      tags: [packages, setup]
+      when: ansible_facts['os_family'] != 'Darwin'
+
+    - role: ssh
+      tags: [ssh, setup]
+
+    - role: shell_profile
+      tags: [shell, setup]
+
+    - role: git_repos
+      tags: [git, repos, setup]

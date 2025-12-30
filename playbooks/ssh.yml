@@ -1,0 +1,11 @@
+---
+# playbooks/ssh.yml - SSH configuration only
+# Run to configure SSH without other changes
+
+- name: Configure SSH
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    - role: ssh
+      tags: [ssh]

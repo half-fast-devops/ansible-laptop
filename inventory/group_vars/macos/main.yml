@@ -1,0 +1,17 @@
+---
+# inventory/group_vars/macos/main.yml
+# macOS-specific variables
+
+# Homebrew packages to install
+brew_packages:
+  - git
+  - fzf
+  - nvim
+  - stow
+  - ripgrep
+
+# Homebrew casks (GUI applications)
+cask_packages: []
+
+# Package manager for this OS
+package_manager: homebrew
