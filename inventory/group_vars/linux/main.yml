@@ -13,9 +13,6 @@ linux_packages:
   - neovim
   - stow
   - ripgrep
-  - joe
-  - ed
-  - regina-rexx
 
 # Package manager: auto, apt, dnf, or pacman
 # 'auto' will detect based on the distribution

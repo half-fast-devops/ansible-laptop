@@ -29,7 +29,8 @@ git_repos: []
 
 # SSH configuration
 ssh_config_dir: "{{ user_home }}/.ssh"
-# Example:
+# Example: this informaiton might be better saved in 
+# inventory/group_vars/all/ssh.yml, if you have forked the repo
 # ssh_identities:
 #   - name: personal
 #     key_type: ed25519
@@ -37,13 +38,10 @@ ssh_config_dir: "{{ user_home }}/.ssh"
 #   - name: work
 #     key_type: ed25519
 #     create_if_missing: true
-ssh_identities: 
-  - name: personal
-    key_type: rsa
-    comment: "mek@mek.cc"
-    create_if_missing: false
+ssh_identities: []
 
-# Example:
+# Example: this informaiton might be better saved in 
+# inventory/group_vars/all/ssh.yml, if you have forked the repo
 # ssh_hosts:
 #   - name: github.com-personal
 #     hostname: github.com
@@ -53,11 +51,7 @@ ssh_identities:
 #     hostname: github.com
 #     user: git
 #     identity_file: ~/.ssh/id_ed25519_work
-ssh_hosts: 
-  - name: github-mek
-    hostname: github.com
-    user: git
-    identity_file: ~/.ssh/id_rsa_personal
+ssh_hosts: []
 
 # Shell profile configuration
 shell_profile_dir: "{{ user_home }}/.profile.d"
@@ -66,4 +60,4 @@ shell_profile_managed: true
 # Doctor configuration
 doctor_strict: false
 doctor_ssh_hosts:
-  - github-mek
+  - github.com ## you'll want to change this
