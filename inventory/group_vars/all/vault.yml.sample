@@ -1,0 +1,12 @@
+---
+# inventory/group_vars/all/vault.yml
+# Encrypt this file with: uv run ansible-vault encrypt inventory/group_vars/all>
+#
+# This file stores sensitive variables that should not be in plain text.
+# The ansible_become_password is used automatically by Ansible when become: tru>
+
+# Sudo password for privilege escalation (Linux package installation, some macO>
+ansible_become_password: "CHAME_ME_PLEASE"
+
+# Sudo password alias for Homebrew casks (uses same password)
+sudo_password: "{{ ansible_become_password }}"
