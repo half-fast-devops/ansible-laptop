@@ -11,5 +11,9 @@
 #     version: main
 #     name: Your Name        # optional: sets git config --local user.name
 #     email: you@example.com # optional: sets git config --local user.email
+#   - repo: github-personal:user/repo.git  # shorthand for ssh://github-personal/user/repo.git
+#     dest: ~/code/personal-repo           # uses SSH host alias from ssh_hosts (including user)
+#     name: Your Name
+#     email: personal@example.com
 
 git_repos: []

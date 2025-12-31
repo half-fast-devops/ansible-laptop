@@ -2,6 +2,22 @@
 # roles/git_repos/tasks/main.yml
 # Clones and updates git repositories
 
+- name: Build list of valid SSH hostnames from ssh_hosts
+  ansible.builtin.set_fact:
+    valid_ssh_hostnames: "{{ ssh_hosts | default([]) | map(attribute='name') | list }}"
+
+- name: Normalize git repository URLs (convert shorthand SSH to full format)
+  ansible.builtin.set_fact:
+    normalized_git_repos: "{{ normalized_git_repos | default([]) + [item | combine({'repo': normalized_repo})] }}"
+  vars:
+    is_shorthand: "{{ ':' in item.repo and not item.repo is regex('^(https?://|git@|ssh://)') }}"
+    hostname_part: "{{ item.repo.split(':')[0] if is_shorthand else '' }}"
+    path_part: "{{ item.repo.split(':', 1)[1] if is_shorthand else '' }}"
+    is_valid_ssh_host: "{{ hostname_part in valid_ssh_hostnames }}"
+    normalized_repo: "{{ ('ssh://' + hostname_part + '/' + path_part) if (is_shorthand and is_valid_ssh_host) else item.repo }}"
+  loop: "{{ git_repos }}"
+  when: git_repos | length > 0
+
 - name: Validate git repository configurations
   ansible.builtin.assert:
     that:
@@ -10,7 +26,7 @@
       - item.repo is regex('^(https?://|git@|ssh://)')
     fail_msg: "Git repo entry missing required 'repo' or 'dest', or invalid repo URL: {{ item }}"
     quiet: true
-  loop: "{{ git_repos }}"
+  loop: "{{ normalized_git_repos | default(git_repos) }}"
   when: git_repos | length > 0
 
 - name: Ensure parent directories exist
@@ -18,7 +34,7 @@
     path: "{{ item.dest | dirname }}"
     state: directory
     mode: "0755"
-  loop: "{{ git_repos }}"
+  loop: "{{ normalized_git_repos | default(git_repos) }}"
   when: git_repos | length > 0
 
 - name: Clone or update git repositories
@@ -28,7 +44,7 @@
     clone: true
     update: true
     version: "{{ item.version | default('HEAD') }}"
-  loop: "{{ git_repos }}"
+  loop: "{{ normalized_git_repos | default(git_repos) }}"
   when: git_repos | length > 0
 
 - name: Set local git user.name
@@ -37,7 +53,7 @@
     scope: local
     name: user.name
     value: "{{ item.name }}"
-  loop: "{{ git_repos }}"
+  loop: "{{ normalized_git_repos | default(git_repos) }}"
   when:
     - git_repos | length > 0
     - item.name is defined
@@ -48,7 +64,7 @@
     scope: local
     name: user.email
     value: "{{ item.email }}"
-  loop: "{{ git_repos }}"
+  loop: "{{ normalized_git_repos | default(git_repos) }}"
   when:
     - git_repos | length > 0
     - item.email is defined
