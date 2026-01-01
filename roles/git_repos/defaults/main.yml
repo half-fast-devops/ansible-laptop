@@ -5,15 +5,24 @@
 # Example:
 # git_repos:
 #   - repo: git@github.com:user/dotfiles.git
-#     dest: ~/dotfiles
+#     dest: ~/dotfiles                     # explicit full path (project name NOT auto-appended)
 #   - repo: git@github.com:user/project.git
-#     dest: ~/code/project
+#     dest: ~/git                          # auto-appends project name: ~/git/project
 #     version: main
 #     name: Your Name        # optional: sets git config --local user.name
 #     email: you@example.com # optional: sets git config --local user.email
 #   - repo: github-personal:user/repo.git  # shorthand for ssh://github-personal/user/repo.git
-#     dest: ~/code/personal-repo           # uses SSH host alias from ssh_hosts (including user)
+#     dest: ~/git                          # auto-appends project name: ~/git/repo
 #     name: Your Name
 #     email: personal@example.com
+#   - repo: git@github.com:user/project.git
+#     dest: ~/git                          # base destination directory
+#     use_structured_path: true            # organizes as ~/git/user/project/main
+#     version: main
 
 git_repos: []
+
+# When true, organizes repos as dest/<user|org>/<project>/<branch>
+# When false (default), organizes repos as dest/<project>
+# Can be set globally or per-repo
+git_repos_use_structured_path: false

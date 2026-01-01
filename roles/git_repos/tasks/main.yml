@@ -18,6 +18,25 @@
   loop: "{{ git_repos }}"
   when: git_repos | length > 0
 
+- name: Compute destination paths with project name
+  ansible.builtin.set_fact:
+    final_git_repos: "{{ final_git_repos | default([]) + [item | combine({'final_dest': computed_dest})] }}"
+  vars:
+    use_structured: "{{ item.use_structured_path | default(git_repos_use_structured_path) | bool }}"
+    # Extract user/org and project from repo URL
+    # For git@hostname:user/repo.git or https://hostname/user/repo.git or ssh://hostname/user/repo.git
+    repo_path_ssh: "{{ item.repo | regex_replace('^git@[^:]+:', '') | regex_replace('\\.git$', '') }}"
+    repo_path_https: "{{ item.repo | regex_replace('^https?://[^/]+/', '') | regex_replace('\\.git$', '') }}"
+    repo_path_ssh_protocol: "{{ item.repo | regex_replace('^ssh://[^/]+/', '') | regex_replace('\\.git$', '') }}"
+    repo_path: "{{ repo_path_ssh if item.repo is regex('^git@') else (repo_path_ssh_protocol if item.repo is regex('^ssh://') else repo_path_https) }}"
+    user_org: "{{ repo_path.split('/')[0] if '/' in repo_path else 'unknown' }}"
+    project: "{{ repo_path.split('/')[1] if '/' in repo_path and repo_path.split('/') | length > 1 else 'unknown' }}"
+    branch: "{{ item.version | default('HEAD') }}"
+    # Structured: dest/user/project/branch, Simple: dest/project
+    computed_dest: "{{ (item.dest + '/' + user_org + '/' + project + '/' + branch) if use_structured else (item.dest + '/' + project) }}"
+  loop: "{{ normalized_git_repos | default(git_repos) }}"
+  when: git_repos | length > 0
+
 - name: Validate git repository configurations
   ansible.builtin.assert:
     that:
@@ -26,45 +45,45 @@
       - item.repo is regex('^(https?://|git@|ssh://)')
     fail_msg: "Git repo entry missing required 'repo' or 'dest', or invalid repo URL: {{ item }}"
     quiet: true
-  loop: "{{ normalized_git_repos | default(git_repos) }}"
+  loop: "{{ final_git_repos | default(normalized_git_repos | default(git_repos)) }}"
   when: git_repos | length > 0
 
 - name: Ensure parent directories exist
   ansible.builtin.file:
-    path: "{{ item.dest | dirname }}"
+    path: "{{ item.final_dest | default(item.dest) | dirname }}"
     state: directory
     mode: "0755"
-  loop: "{{ normalized_git_repos | default(git_repos) }}"
+  loop: "{{ final_git_repos | default(normalized_git_repos | default(git_repos)) }}"
   when: git_repos | length > 0
 
 - name: Clone or update git repositories
   ansible.builtin.git:
     repo: "{{ item.repo }}"
-    dest: "{{ item.dest }}"
+    dest: "{{ item.final_dest | default(item.dest) }}"
     clone: true
     update: true
     version: "{{ item.version | default('HEAD') }}"
-  loop: "{{ normalized_git_repos | default(git_repos) }}"
+  loop: "{{ final_git_repos | default(normalized_git_repos | default(git_repos)) }}"
   when: git_repos | length > 0
 
 - name: Set local git user.name
   community.general.git_config:
-    repo: "{{ item.dest }}"
+    repo: "{{ item.final_dest | default(item.dest) }}"
     scope: local
     name: user.name
     value: "{{ item.name }}"
-  loop: "{{ normalized_git_repos | default(git_repos) }}"
+  loop: "{{ final_git_repos | default(normalized_git_repos | default(git_repos)) }}"
   when:
     - git_repos | length > 0
     - item.name is defined
 
 - name: Set local git user.email
   community.general.git_config:
-    repo: "{{ item.dest }}"
+    repo: "{{ item.final_dest | default(item.dest) }}"
     scope: local
     name: user.email
     value: "{{ item.email }}"
-  loop: "{{ normalized_git_repos | default(git_repos) }}"
+  loop: "{{ final_git_repos | default(normalized_git_repos | default(git_repos)) }}"
   when:
     - git_repos | length > 0
     - item.email is defined
